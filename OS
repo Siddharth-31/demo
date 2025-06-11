@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+void bubbleSort(int a[], int n) {
+    for(int i=0; i<n-1; i++)
+        for(int j=0; j<n-i-1; j++)
+            if(a[j] > a[j+1]) {
+                int t = a[j]; a[j] = a[j+1]; a[j+1] = t;
+            }
+}
+
+void insertionSort(int a[], int n) {
+    for(int i=1; i<n; i++) {
+        int key = a[i], j = i - 1;
+        while(j >= 0 && a[j] > key)
+            a[j+1] = a[j--];
+        a[j+1] = key;
+    }
+}
+
+void printArr(int a[], int n) {
+    for(int i=0; i<n; i++) printf("%d ", a[i]);
+    printf("\n");
+}
+
+int main() {
+    int n;
+    printf("Enter number of elements: ");
+    scanf("%d", &n);
+    int a[n], b[n];
+    printf("Enter %d numbers: ", n);
+    for(int i=0; i<n; i++) {
+        scanf("%d", &a[i]);
+        b[i] = a[i]; // copy for child
+    }
+
+    int pid = fork();
+
+    if(pid == 0) {
+        // Child process
+        printf("\n[Child] PID: %d\n", getpid());
+        sleep(5);  // To show orphan if parent exits early
+        insertionSort(b, n);
+        printf("[Child] Insertion Sort: ");
+        printArr(b, n);
+        exit(0);
+    } else {
+        // Parent process
+        printf("\n[Parent] PID: %d, Child PID: %d\n", getpid(), pid);
+        bubbleSort(a, n);
+        printf("[Parent] Bubble Sort: ");
+        printArr(a, n);
+        wait(NULL); // Comment this to create zombie
+        printf("[Parent] Child finished.\n");
+    }
+
+    return 0;
+}
